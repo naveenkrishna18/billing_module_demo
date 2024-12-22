@@ -1,4 +1,4 @@
-resource "aws_dynamodb_table" "basic-dynamodb-table" {
+resource "aws_dynamodb_table" "payment-dynamodb-table" {
   name           = "nav_payment_table"
   billing_mode   = "PAY_PER_REQUEST"
   read_capacity  = null

@@ -1,7 +1,22 @@
 resource "aws_iam_role" "iam_for_lambda" {
   name               = "${var.lambda_function_name}-lambda-role"
-  assume_role_policy = var.lambda_policy
+  assume_role_policy = data.aws_iam_policy_document.sts_lambda_policy.json
 }
+
+data "aws_iam_policy_document" "sts_lambda_policy" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+
+}
+
 
 data "archive_file" "lambda" {
   type        = "zip"
@@ -23,7 +38,21 @@ resource "aws_lambda_function" "test_lambda" {
     }
 }
 
-resource "aws_cloudwatch_log_group" "example" {
+resource "aws_cloudwatch_log_group" "lambda_log_group" {
   name              = "/aws/lambda/${var.lambda_function_name}"
   retention_in_days = 14
+}
+
+
+
+resource "aws_iam_policy" "lambda_logging" {
+  name        = "${var.lambda_function_name}_policy"
+  path        = "/"
+  description = "IAM policy for lambda"
+  policy      = var.lambda_policy
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.lambda_logging.arn
 }
